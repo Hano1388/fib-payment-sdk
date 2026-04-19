@@ -1,6 +1,6 @@
 {
   "name": "fib-payment-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node.js client for the Fib Payment API (OAuth2, payments, status, cancel, refund)",
   "author": "Hindreen Bag <hinsul3113@gmail.com> (https://github.com/Hano1388)",
   "type": "module",
