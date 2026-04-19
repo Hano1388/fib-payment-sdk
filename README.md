@@ -40,8 +40,10 @@ console.log(created?.paymentId, created?.qrCode);
 const status = await payment.checkPaymentStatus(created?.paymentId ?? "");
 console.log(status?.status);
 
-await payment.cancelPayment(created?.paymentId);
-await payment.refundPayment(created?.paymentId);
+const canceled = await payment.cancelPayment(created?.paymentId);
+// `true` only when the API returns 204 No Content
+const refundAccepted = await payment.refundPayment(created?.paymentId);
+// `true` only when the API returns 202 Accepted
 
 await payment.pollPaymentStatus(
   created?.paymentId ?? "",
@@ -67,6 +69,10 @@ const payment = new FibPaymentService({
     fetch(url, { ...init, dispatcher: new Agent({ connect: { ... } }) }),
 });
 ```
+
+## Cancel and refund
+
+`cancelPayment` and `refundPayment` return **`true`** only when the HTTP status matches FIB’s contract (**204** for cancel, **202** for refund). Other successful status codes return **`false`** (so you can detect unexpected responses). Missing `paymentId` returns **`false`**. Non-success HTTP statuses still throw **`FibPaymentHttpError`**.
 
 ## Errors
 

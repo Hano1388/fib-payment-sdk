@@ -109,11 +109,14 @@ export class FibPaymentService {
     return tokenResponse;
   }
 
-  private async makeAuthorizedRequest(
+  /**
+   * Authorized HTTP call with 401 retry. Throws {@link FibPaymentHttpError} on non-OK responses.
+   */
+  private async authorizedRequest(
     method: string,
     pathOrUrl: string,
     data?: unknown
-  ): Promise<string> {
+  ): Promise<{ status: number; body: string }> {
     const url = pathOrUrl.startsWith("http")
       ? pathOrUrl
       : `${this.baseUrl}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
@@ -147,10 +150,19 @@ export class FibPaymentService {
 
       const text = await response.text();
       assertOk(response, text);
-      return text;
+      return { status: response.status, body: text };
     }
 
     throw new Error("Unable to acquire a valid access token after retrying.");
+  }
+
+  private async makeAuthorizedRequest(
+    method: string,
+    pathOrUrl: string,
+    data?: unknown
+  ): Promise<string> {
+    const { body } = await this.authorizedRequest(method, pathOrUrl, data);
+    return body;
   }
 
   async createPayment(
@@ -174,20 +186,34 @@ export class FibPaymentService {
     return JSON.parse(raw) as FibPaymentStatusResponse;
   }
 
-  async cancelPayment(paymentId: string | undefined | null): Promise<void> {
-    if (!paymentId) return;
-    await this.makeAuthorizedRequest(
+  /**
+   * Cancels an unpaid payment. FIB returns **204 No Content** on success.
+   * @returns `true` when the response status is 204; `false` if `paymentId` is missing or status is another 2xx; throws on error responses.
+   */
+  async cancelPayment(
+    paymentId: string | undefined | null
+  ): Promise<boolean> {
+    if (!paymentId) return false;
+    const { status } = await this.authorizedRequest(
       "POST",
       `/protected/v1/payments/${encodeURIComponent(paymentId)}/cancel`
     );
+    return status === 204;
   }
 
-  async refundPayment(paymentId: string | undefined | null): Promise<void> {
-    if (!paymentId) return;
-    await this.makeAuthorizedRequest(
+  /**
+   * Refunds a paid payment. FIB returns **202 Accepted** when the refund request is accepted.
+   * @returns `true` when the response status is 202; `false` if `paymentId` is missing or status is another 2xx; throws on error responses.
+   */
+  async refundPayment(
+    paymentId: string | undefined | null
+  ): Promise<boolean> {
+    if (!paymentId) return false;
+    const { status } = await this.authorizedRequest(
       "POST",
       `/protected/v1/payments/${encodeURIComponent(paymentId)}/refund`
     );
+    return status === 202;
   }
 
   /**
