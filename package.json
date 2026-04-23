@@ -6,6 +6,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "homepage": "https://github.com/Hano1388/fib-payment-sdk",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -27,11 +28,20 @@
     "payment",
     "sdk",
     "iraq",
-    "openapi-connect"
+    "openapi-connect",
+    "api-connect",
+    "node",
+    "node.js",
+    "javascript",
+    "typescript"
   ],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.10.0",
     "typescript": "~5.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hano1388/fib-payment-sdk.git"
   }
 }
